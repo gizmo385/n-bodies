@@ -1,5 +1,6 @@
 all:
-	#Build command goes here :)
+	javac $$(find . -name "*.java")
+	find src -name "*.class" -exec mv {} bin \;
 
 clean:
-	@rm *.class 2> /dev/null || true
+	@rm ./bin/*.class 2> /dev/null || true
