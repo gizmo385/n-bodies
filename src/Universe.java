@@ -9,9 +9,14 @@ public class Universe {
     }
 
     public void step(double seconds) {
+        boolean print = true;
         for ( int i = 0; i < bodies.size() - 1; i++ ) {
             for ( int j = i+1; j < bodies.size(); j++ ) {
                 Utils.calculateForce(bodies.get(i), bodies.get(j));
+                if ( Utils.calculateDistance(bodies.get(i), bodies.get(j)) < 0.0001 && print ) {
+                    printBodies();
+                    print = false;
+                }
             }
         }
         for ( Particle body : bodies ) {
