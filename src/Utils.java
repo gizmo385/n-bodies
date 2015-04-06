@@ -27,4 +27,12 @@ public class Utils {
         p1.forceY = p1.forceY + magnitude * dirY / distance;
         p2.forceY = p2.forceY - magnitude * dirY / distance;
     }
+
+    public static double calculateDistance( Particle p1, Particle p2 ) {
+        return Math.sqrt( Math.pow(p2.posY - p1.posY, 2) + Math.pow(p2.posX - p1.posX, 2) );
+    }
+
+    public static boolean colliding(Particle p1, Particle p2) {
+        return calculateDistance(p1, p2) <= (p1.size + p2.size);
+    }
 }
