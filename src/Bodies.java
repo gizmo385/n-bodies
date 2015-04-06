@@ -7,16 +7,19 @@ import java.util.ArrayList;
  */
 public class Bodies {
 
-    private static final double DT = 0.01; // how long each time step is
-    private static final double TIME_STEPS = 15000000; // 15,000,001 (to get that last print)
+    private static final double DT = 1; // how long each time step is
     private static final int PRINT_COUNT = 15; // divisions of TIME_STEPS to print
 
     public static void main( String[] args ) {
 
-        Particle p1 = new Particle(-0.5, -0.5, 1);
-        Particle p2 = new Particle(0.5, -0.5, 1);
-        Particle p3 = new Particle(-0.5, 0.5, 1);
-        Particle p4 = new Particle(0.5, 0.5, 1);
+        // Read command-line arguments
+        final double TIME_STEPS = args.length > 0 ? Double.parseDouble(args[0]) : 15000000;
+        final double BODY_SIZE  = args.length > 1 ? Double.parseDouble(args[2]) : 0.01;
+
+        Particle p1 = new Particle(-0.5, -0.5, BODY_SIZE, 1);
+        Particle p2 = new Particle(0.5, -0.5, BODY_SIZE, 1);
+        Particle p3 = new Particle(-0.5, 0.5, BODY_SIZE, 1);
+        Particle p4 = new Particle(0.5, 0.5, BODY_SIZE, 1);
 
         ArrayList<Particle> particles = new ArrayList<Particle>();
         particles.add(p1);
@@ -31,7 +34,7 @@ public class Bodies {
                 System.out.printf("Time = %f:\n", i * DT);
                 u.printBodies();
             }
-            u.step(DT);
+            u.step(DT, i);
         }
         System.out.printf("Time (seconds) = %f:\n", TIME_STEPS);
         u.printBodies();
