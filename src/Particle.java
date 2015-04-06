@@ -3,14 +3,16 @@ public class Particle {
     protected double posX;
     protected double posY;
     protected double mass;
+    protected double size;
     protected double forceX = 0.0;
     protected double forceY = 0.0;
     protected double velocityX = 0.0;
     protected double velocityY = 0.0;
 
-    public Particle(double x, double y, double mass) {
+    public Particle(double x, double y, double size, double mass) {
         this.posX = x;
         this.posY = y;
+        this.size = size;
         this.mass = mass;
     }
 
