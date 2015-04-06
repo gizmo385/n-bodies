@@ -16,16 +16,25 @@ public class Bodies {
         final double TIME_STEPS = args.length > 0 ? Double.parseDouble(args[0]) : 15000000;
         final double BODY_SIZE  = args.length > 1 ? Double.parseDouble(args[2]) : 0.01;
 
-        Particle p1 = new Particle(-0.5, -0.5, BODY_SIZE, 1);
-        Particle p2 = new Particle(0.5, -0.5, BODY_SIZE, 1);
-        Particle p3 = new Particle(-0.5, 0.5, BODY_SIZE, 1);
-        Particle p4 = new Particle(0.5, 0.5, BODY_SIZE, 1);
+        //Particle p1 = new Particle(-0.5, -0.5, BODY_SIZE, 1);
+        //Particle p2 = new Particle(0.5, -0.5, BODY_SIZE, 1);
+        //Particle p3 = new Particle(-0.5, 0.5, BODY_SIZE, 1);
+        //Particle p4 = new Particle(0.5, 0.5, BODY_SIZE, 1);
+        Particle p1 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
+        Particle p2 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
+        Particle p3 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
+        Particle p4 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
 
         ArrayList<Particle> particles = new ArrayList<Particle>();
         particles.add(p1);
         particles.add(p2);
         particles.add(p3);
         particles.add(p4);
+
+        for(Particle p : particles) {
+            System.out.printf("Created particle @ (%f, %f) with a size of %f and a mass of %f\n",
+                    p.posX, p.posY, p.size, p.mass);
+        }
 
         Universe u = new Universe(particles);
 
@@ -40,5 +49,15 @@ public class Bodies {
         u.printBodies();
 
         System.out.println("Done");
+    }
+
+    /**
+     * Returns a double in the range of [min, max]
+     *
+     * @param min The smallest possible double that can be returned
+     * @param max The largest possible number that can be returned
+     */
+    private static double randomInRange(double min, double max) {
+        return min + (Math.random() * ((max - min) + 1));
     }
 }
