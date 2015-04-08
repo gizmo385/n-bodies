@@ -35,4 +35,35 @@ public class Utils {
     public static boolean colliding(Particle p1, Particle p2) {
         return calculateDistance(p1, p2) <= (p1.size + p2.size);
     }
+
+    public static void collide(Particle p1, Particle p2) {
+        // Modify the x and y velocities for p1. Equations taken from 2D collisions PDF
+        double p1NewDx = (p2.velocityX * Math.pow((p2.posX - p1.posX), 2) + p2.velocityY * (p2.posX
+                    - p1.posX) * (p2.posY - p1.posY) + p1.velocityX * Math.pow(p2.posY - p1.posY, 2)
+                - p1.velocityY * (p2.posX - p1.posX) * (p2.posY - p1.posY)) / (Math.pow(p2.posX
+                    - p1.posX, 2) + Math.pow(p2.posY - p1.posY, 2));
+
+        double p1NewDy = (p2.velocityX * (p2.posX - p1.posX) * (p2.posY - p1.posY) + p2.velocityY
+                * Math.pow(p2.posY - p1.posY, 2) - p1.velocityX * (p2.posY - p1.posY) * (p2.posX
+                    * - p1.posX) + p1.velocityY * Math.pow(p2.posX - p1.posX, 2)) / (Math.pow(p2.posX
+                        - p1.posX, 2) + Math.pow(p2.posY - p1.posY, 2));
+
+        // Modify the x and y velocities for p2. Equations taken from 2D collisions PDF
+        double p2NewDx = (p1.velocityX * Math.pow((p2.posX - p1.posX), 2) + p2.velocityY * (p2.posX
+                    - p1.posX) * (p2.posY - p1.posY) + p2.velocityX * Math.pow(p2.posY - p1.posY, 2)
+                - p2.velocityY * (p2.posX - p1.posX) * (p2.posY - p1.posY)) / (Math.pow(p2.posX
+                    - p1.posX, 2) + Math.pow(p2.posY - p1.posY, 2));
+
+        double p2NewDy = (p1.velocityX * (p2.posX - p1.posX) * (p2.posY - p1.posY) + p1.velocityY
+                * Math.pow(p2.posY - p1.posY, 2) - p2.velocityX * (p2.posY - p1.posY) * (p2.posX
+                    * - p1.posX) + p2.velocityY * Math.pow(p2.posX - p1.posX, 2)) / (Math.pow(p2.posX
+                        - p1.posX, 2) + Math.pow(p2.posY - p1.posY, 2));
+
+        // Actually modify the god damn velocities
+        p2.velocityY = p2NewDy;
+        p2.velocityX = p2NewDx;
+        p1.velocityY = p1NewDy;
+        p1.velocityX = p1NewDx;
+
+    }
 }
