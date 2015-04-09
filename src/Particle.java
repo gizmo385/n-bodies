@@ -35,4 +35,9 @@ public class Particle {
         this.forceX = 0.0;
         this.forceY = 0.0;
     }
+
+    public String toString() {
+        return String.format("x = %f, y = %f, vx = %f units/sec, vy = %f units/sec", posX, posY,
+                velocityX, velocityY);
+    }
 }
