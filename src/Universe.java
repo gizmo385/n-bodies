@@ -1,11 +1,14 @@
 import java.util.List;
+import java.util.ArrayList;
 
 public class Universe {
 
     private List<Particle> bodies;
+    private List<StepListener> registeredStepListeners;
     private static boolean hasCollided = false;
 
     public Universe(List<Particle> bodies) {
+        this.registeredStepListeners = new ArrayList<>();
         this.bodies = bodies;
     }
 
@@ -96,9 +99,22 @@ public class Universe {
         }
     }
 
+    public List<Particle> getBodies() {
+        return bodies;
+    }
+
+    public void addStepListener( StepListener listener ) {
+        registeredStepListeners.add(listener);
+    }
+
+    public void notifyListeners() {
+        registeredStepListeners.stream().forEach(l -> l.finishStep(bodies));
+    }
+
     public void step(double seconds, int currentStep) {
         moveParticles(seconds);
         handleCollisions(seconds, currentStep);
+        notifyListeners();
     }
 
     public void printBodies() {
