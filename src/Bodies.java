@@ -15,10 +15,10 @@ public class Bodies {
         // Read command-line arguments
         final double TIME_STEPS = args.length > 0 ? Double.parseDouble(args[0]) : 15000000;
         final double BODY_SIZE  = args.length > 1 ? Double.parseDouble(args[1]) : 0.01;
-        final double MASS       = args.length > 2 ? Double.parseDouble(args[2]) : 5;
+        final double MASS       = args.length > 2 ? Double.parseDouble(args[2]) : 1;
 
-        Particle p1 = new Particle(-5, 0, BODY_SIZE, MASS);
-        Particle p2 = new Particle(5, 0, BODY_SIZE, MASS);
+        Particle p1 = new Particle(-2, 0, BODY_SIZE, MASS);
+        Particle p2 = new Particle(2, 0, BODY_SIZE, MASS);
         //Particle p3 = new Particle(-0.5, 0.5, BODY_SIZE, 1);
         //Particle p4 = new Particle(0.5, 0.5, BODY_SIZE, 1);
         //Particle p1 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);

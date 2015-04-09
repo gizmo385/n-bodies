@@ -17,8 +17,7 @@ public class Utils {
      */
     public static void calculateForce(Particle p1, Particle p2) {
         double distance, magnitude, dirX, dirY;
-        distance = Math.sqrt(Math.pow(p1.posX - p2.posX, 2) +
-                             Math.pow(p1.posY - p2.posY, 2) );
+        distance = calculateDistance(p1, p2);
         magnitude = (GRAVITY_CONSTANT * p1.mass * p2.mass) / (Math.pow(distance, 2));
         dirX = p2.posX - p1.posX;
         dirY = p2.posY - p1.posY;
@@ -29,7 +28,8 @@ public class Utils {
     }
 
     public static double calculateDistance( Particle p1, Particle p2 ) {
-        return Math.sqrt( Math.pow(p2.posY - p1.posY, 2) + Math.pow(p2.posX - p1.posX, 2) );
+        double d = Math.sqrt( Math.pow(p2.posY - p1.posY, 2) + Math.pow(p2.posX - p1.posX, 2) );
+        return Math.max(p1.size + p2.size, d);
     }
 
     public static boolean colliding(Particle p1, Particle p2) {

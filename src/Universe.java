@@ -3,6 +3,7 @@ import java.util.List;
 public class Universe {
 
     private List<Particle> bodies;
+    private static boolean hasCollided = false;
 
     public Universe(List<Particle> bodies) {
         this.bodies = bodies;
@@ -13,8 +14,11 @@ public class Universe {
         for ( int i = 0; i < bodies.size() - 1; i++ ) {
             for ( int j = i+1; j < bodies.size(); j++ ) {
                 // Calculate forces between the particles
-                Utils.calculateForce(bodies.get(i), bodies.get(j));
+                if( ! hasCollided ) {
+                    Utils.calculateForce(bodies.get(i), bodies.get(j));
+                }
 
+                hasCollided = false;
             }
         }
 
@@ -38,6 +42,7 @@ public class Universe {
                  * has occured.
                  */
                 if( Utils.colliding(p1, p2) ) {
+                    hasCollided = true;
                     System.out.printf("Reporting collision between %d and %d @ %f seconds\n", i, j,
                             currentStep * seconds );
 
@@ -50,9 +55,9 @@ public class Universe {
                             j, bodies.get(j).posX, bodies.get(j).posY, bodies.get(j).velocityX,
                             bodies.get(j).velocityY);
 
-                    double overlap = (p1.size + p2.size) - Utils.calculateDistance(p1, p2);
+                    //double overlap = (p1.size + p2.size) - Utils.calculateDistance(p1, p2);
 
-                    System.out.printf("overlap = %f\n", overlap);
+                    //System.out.printf("overlap = %f\n", overlap);
 
                     /*
                      * TODO: We make the observation that shifting solely based upon the overlap
@@ -61,13 +66,13 @@ public class Universe {
                      * contribution to that overlap, however for the moment we will shift based only
                      * on the overlap amount.
                      */
-                    double dirX = p2.posX - p1.posX;
-                    double dirY = p2.posY - p1.posY;
+                    //double dirX = p2.posX - p1.posX;
+                    //double dirY = p2.posY - p1.posY;
 
-                    p1.posX -= Math.signum(dirX) * (overlap / 2);
-                    p1.posY -= Math.signum(dirY) * (overlap / 2);
-                    p2.posX += Math.signum(dirX) * (overlap / 2);
-                    p2.posY += Math.signum(dirY) * (overlap / 2);
+                    //p1.posX -= Math.signum(dirX) * (overlap / 2);
+                    //p1.posY -= Math.signum(dirY) * (overlap / 2);
+                    //p2.posX += Math.signum(dirX) * (overlap / 2);
+                    //p2.posY += Math.signum(dirY) * (overlap / 2);
 
                     // Break the universe
                     Utils.collide(p1, p2);
