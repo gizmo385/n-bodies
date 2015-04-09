@@ -1,10 +1,9 @@
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -55,30 +54,25 @@ public class BodiesFrame extends JFrame implements StepListener {
     }
 
     @Override
-    public void finishStep(List<Particle> particlesAfterStep) {
-        updatePanel(particlesAfterStep);
+    public void finishStep(int step, List<Particle> particlesAfterStep) {
+        if( step % 700 == 0 ) {
+            updatePanel(particlesAfterStep);
+        }
     }
 
-    public synchronized void updatePanel(List<Particle> particles) {
-        this.drawingCanvas.postParticles(particles);
+    public void updatePanel(List<Particle> particles) {
+        SwingUtilities.invokeLater(() -> this.drawingCanvas.postParticles(particles));
     }
 
     public void startUniverse() {
         // Run the universe in a separate thread
-        Thread t = new Thread(() -> {
-            for ( int i = 0; i < TIME_STEPS; i++ ) {
-                if ( i % (TIME_STEPS / PRINT_COUNT) == 0 ) {
-                    System.out.printf("Time = %f:\n", i * DT);
-                    universe.printBodies();
-                }
-                universe.step(DT, i);
+        for ( int i = 0; ; i++ ) {
+            if ( i % (TIME_STEPS / PRINT_COUNT) == 0 ) {
+                System.out.printf("Time = %f:\n", i * DT);
+                universe.printBodies();
             }
-
-            System.out.printf("Time (seconds) = %f:\n", TIME_STEPS);
-            universe.printBodies();
-        });
-
-        t.start();
+            universe.step(DT, i);
+        }
     }
 
     public static void main(String[] args) {
@@ -86,7 +80,11 @@ public class BodiesFrame extends JFrame implements StepListener {
         Particle p2 = new Particle(-5, -5, BODY_SIZE, MASS);
         Particle p3 = new Particle(5, -5, BODY_SIZE, MASS);
         Particle p4 = new Particle(5, 5, BODY_SIZE, MASS);
-        Universe universe = new Universe(Arrays.asList(p1, p2, p3, p4));
+        Particle p5 = new Particle(-3, 3, BODY_SIZE, MASS);
+        Particle p6 = new Particle(-3, -3, BODY_SIZE, MASS);
+        Particle p7 = new Particle(3, -3, BODY_SIZE, MASS);
+        Particle p8 = new Particle(3, 3, BODY_SIZE, MASS);
+        Universe universe = new Universe(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8));
         BodiesFrame bf = new BodiesFrame(universe);
 
         bf.setVisible(true);
@@ -97,7 +95,8 @@ public class BodiesFrame extends JFrame implements StepListener {
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private final static int UPSCALE_AMOUNT = 20;
+        private final static int SIZE_UPSCALE_AMOUNT = 20;
+        private final static int POS_UPSCALE_AMOUNT = 7;
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -108,15 +107,15 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             if( particles != null ) {
                 for( Particle p : particles ) {
-                    int x = (int)Math.round(p.posX * UPSCALE_AMOUNT) + (BodiesFrame.WIDTH / 2);
-                    int y = (int)Math.round(p.posY * UPSCALE_AMOUNT) + (BodiesFrame.HEIGHT / 2);
-                    int size = (int)Math.round(p.size * UPSCALE_AMOUNT);
+                    int x = (int)Math.round(p.posX * POS_UPSCALE_AMOUNT) + (BodiesFrame.WIDTH / 2);
+                    int y = (int)Math.round(p.posY * POS_UPSCALE_AMOUNT) + (BodiesFrame.HEIGHT / 2);
+                    int size = (int)Math.round(p.size * SIZE_UPSCALE_AMOUNT);
 
                     g2.fillOval(x, y, size, size);
                 }
             }
 
-            this.repaint();
+            //this.repaint();
         }
 
         public void postParticles(List<Particle> particles) {
