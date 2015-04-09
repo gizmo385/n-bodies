@@ -107,14 +107,14 @@ public class Universe {
         registeredStepListeners.add(listener);
     }
 
-    public void notifyListeners() {
-        registeredStepListeners.stream().forEach(l -> l.finishStep(bodies));
+    public void notifyListeners(int step) {
+        registeredStepListeners.stream().forEach(l -> l.finishStep(step, bodies));
     }
 
     public void step(double seconds, int currentStep) {
         moveParticles(seconds);
         handleCollisions(seconds, currentStep);
-        notifyListeners();
+        notifyListeners(currentStep);
     }
 
     public void printBodies() {

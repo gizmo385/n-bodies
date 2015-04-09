@@ -10,8 +10,9 @@ public interface StepListener {
      * This is called when the calculation of a step has finished. Upon completion, the GUI will be
      * free to draw to new positions for the particles in the Universe.
      *
+     * @param step The step that just finished executing
      * @param particlesAfterStep The list of particles in the Universe after the step has been
      * completed
      */
-    public void finishStep(List<Particle> particlesAfterStep);
+    public void finishStep(int step, List<Particle> particlesAfterStep);
 }
