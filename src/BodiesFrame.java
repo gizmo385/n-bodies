@@ -17,9 +17,11 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     // Universe Constants
     protected static final double BODY_SIZE = 1;
-    protected static final double TIME_STEPS = 3500000;
     protected static final double MASS = 1;
-    protected static final double DT = 1;
+    //protected static final double DT = 0.1;
+    protected static final double DT = 5;
+    protected static final int TIME_STEPS = 3500000;
+    protected static final int NUM_WORKERS = 1;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -64,33 +66,20 @@ public class BodiesFrame extends JFrame implements StepListener {
         SwingUtilities.invokeLater(() -> this.drawingCanvas.postParticles(particles));
     }
 
-    public void startUniverse() {
-        // Run the universe in a separate thread
-        for ( int i = 0; ; i++ ) {
-            if ( i % (TIME_STEPS / PRINT_COUNT) == 0 ) {
-                System.out.printf("Time = %f:\n", i * DT);
-                universe.printBodies();
-            }
-            universe.step(DT, i);
-        }
-    }
-
     public static void main(String[] args) {
-        Particle p1 = new Particle(2, -2, 0, 0, BODY_SIZE, MASS);
-        Particle p2 = new Particle(-2, 2, 0, 0, BODY_SIZE, MASS);
-//        Particle p3 = new Particle(2.25, -2.25, 0, 0, BODY_SIZE, MASS);
-        Universe universe = new Universe(Arrays.asList(p1, p2));
+        Particle p1 = new Particle(5, -5, 0, 0, BODY_SIZE, MASS);
+        Particle p2 = new Particle(-5, 5, 0, 0, BODY_SIZE, MASS);
+        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2);
         BodiesFrame bf = new BodiesFrame(universe);
-
         bf.setVisible(true);
 
-        bf.startUniverse();
+        universe.start(NUM_WORKERS);
     }
 
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private final static int ZOOM_FACTOR = 60;
+        private final static int ZOOM_FACTOR = 20;
 
         @Override
         protected void paintComponent(Graphics g) {

@@ -13,7 +13,7 @@ public class Bodies {
     public static void main( String[] args ) {
 
         // Read command-line arguments
-        final double TIME_STEPS = args.length > 0 ? Double.parseDouble(args[0]) : 15000000;
+        final int TIME_STEPS = args.length > 0 ? Integer.parseInt(args[0]) : 15000000;
         final double BODY_SIZE  = args.length > 1 ? Double.parseDouble(args[1]) : 0.01;
         final double MASS       = args.length > 2 ? Double.parseDouble(args[2]) : 1;
 
@@ -26,18 +26,10 @@ public class Bodies {
         //Particle p3 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
         //Particle p4 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
 
-        ArrayList<Particle> particles = new ArrayList<Particle>();
-        particles.add(p1);
-        particles.add(p2);
         //particles.add(p3);
         //particles.add(p4);
 
-        for(Particle p : particles) {
-            System.out.printf("Created particle @ (%f, %f) with a radius of %f and a mass of %f\n",
-                    p.posX, p.posY, p.radius, p.mass);
-        }
-
-        Universe u = new Universe(particles);
+        Universe u = new Universe(DT, TIME_STEPS, 1, p1, p2);
 
         for ( int i = 0; i < TIME_STEPS; i++ ) {
             if ( i % (TIME_STEPS / PRINT_COUNT) == 0 ) {

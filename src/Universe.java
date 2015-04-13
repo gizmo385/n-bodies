@@ -1,75 +1,145 @@
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
+
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Universe {
 
     private List<Particle> bodies;
+    private CyclicBarrier barrier;
+
+    private AtomicInteger currentParticle;
+    private final int timeSteps;
+    private final double DT;
+
     private List<StepListener> registeredStepListeners;
-    private static boolean hasCollided = false;
+    private boolean[][] collisionMatrix;
 
-    public Universe(List<Particle> bodies) {
+    public Universe(double DT, int timeSteps, int numWorkers, Particle... bodies) {
         this.registeredStepListeners = new ArrayList<>();
-        this.bodies = bodies;
+        this.bodies = Arrays.asList(bodies);
+
+        this.barrier = new CyclicBarrier(numWorkers, () -> barrier.reset());
+
+        this.DT = DT;
+        this.timeSteps = timeSteps;
+        this.currentParticle = new AtomicInteger(0);
+
+        this.collisionMatrix = new boolean[bodies.length][bodies.length];
+        for( int i = 0; i < collisionMatrix.length; i++ ) {
+            for( int j = 0; j < collisionMatrix.length; j++ ) {
+                collisionMatrix[i][j] = false;
+            }
+        }
     }
 
-    public void moveParticles(double seconds) {
+    public void start(int numWorkers) {
+        for( int currentThread = 0; currentThread < numWorkers; currentThread++ ) {
+            Thread t = new Thread(new Worker());
+
+            t.start();
+        }
+    }
+
+    private void calculateForces(int particleId) {
         // Calculate the force between the particles
-        for ( int i = 0; i < bodies.size() - 1; i++ ) {
-            for ( int j = i+1; j < bodies.size(); j++ ) {
-                // Calculate forces between the particles
-                if( ! hasCollided ) {
-                    Utils.calculateForce(bodies.get(i), bodies.get(j));
-                }
+        for ( int j = particleId + 1; j < bodies.size(); j++ ) {
+            // Calculate forces between the particles
+            if( ! collisionMatrix[particleId][j] ) {
+                Utils.calculateForce(bodies.get(particleId), bodies.get(j));
+            } else {
+                System.out.printf("Not calculating forces between %d and %d due to recent collision\n", particleId, j);
             }
+            collisionMatrix[particleId][j] = false;
         }
+    }
 
-        hasCollided = false;
+    private void moveParticles(Particle body, double seconds) {
         // Move the particles
-        for ( Particle body : bodies ) {
-            body.move(seconds);
+        body.move(seconds);
+    }
+
+    private void handleCollisions(int particleId, double seconds, int currentStep) {
+        for( int j = particleId + 1; j < bodies.size(); j++ ) {
+            Particle p1 = bodies.get(particleId);
+            Particle p2 = bodies.get(j);
+
+            /*
+             * If the distance between the centers of the particles is less than the sum of the
+             * radiuses, then the particles are "within" one another. This means that collision
+             * has occured.
+             */
+            if( Utils.colliding(p1, p2) ) {
+                collisionMatrix[particleId][j] = true;
+                collisionMatrix[j][particleId] = true;
+
+                System.out.printf("Reporting collision between %d and %d @ %f seconds\n", particleId, j,
+                        currentStep * seconds );
+
+                // Print out particle information before throwing the particles off the screen
+                System.out.printf("[Before] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
+                        particleId, bodies.get(particleId).posX, bodies.get(particleId).posY, bodies.get(particleId).velocityX,
+                        bodies.get(particleId).velocityY);
+                System.out.printf("[Before] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
+                        j, bodies.get(j).posX, bodies.get(j).posY, bodies.get(j).velocityX,
+                        bodies.get(j).velocityY);
+
+                // Break the universe
+                Utils.collide(p1, p2);
+
+                // Print out particle information before throwing the particles off the screen
+                System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
+                        particleId, bodies.get(particleId).posX, bodies.get(particleId).posY, bodies.get(particleId).velocityX,
+                        bodies.get(particleId).velocityY);
+                System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
+                        j, bodies.get(j).posX, bodies.get(j).posY, bodies.get(j).velocityX,
+                        bodies.get(j).velocityY);
+                System.out.println();
+
+            }
         }
     }
 
-    public void handleCollisions(double seconds, int currentStep) {
-        for( int i = 0; i < bodies.size() - 1; i++ ) {
-            for( int j = i + 1; j < bodies.size(); j++ ) {
-                Particle p1 = bodies.get(i);
-                Particle p2 = bodies.get(j);
+    public void step(double seconds, int currentStep) {
+    }
 
-                /*
-                 * If the distance between the centers of the particles is less than the sum of the
-                 * radiuses, then the particles are "within" one another. This means that collision
-                 * has occured.
-                 */
-                if( Utils.colliding(p1, p2) ) {
-                    hasCollided = true;
-                    System.out.printf("Reporting collision between %d and %d @ %f seconds\n", i, j,
-                            currentStep * seconds );
+    public void printBodies() {
+        for ( int i = 0; i < bodies.size(); i++ ) {
+            System.out.printf("Body %d: x = %f, y = %f, vx = %f units/sec, vy = %f units/sec\n",
+                    i, bodies.get(i).posX, bodies.get(i).posY, bodies.get(i).velocityX,
+                    bodies.get(i).velocityY);
+        }
+        System.out.println();
+    }
 
-                    // Print out particle information before throwing the particles off the screen
-                    System.out.printf("[Before] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
-                            i, bodies.get(i).posX, bodies.get(i).posY, bodies.get(i).velocityX,
-                            bodies.get(i).velocityY);
-                    System.out.printf("[Before] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
-                            j, bodies.get(j).posX, bodies.get(j).posY, bodies.get(j).velocityX,
-                            bodies.get(j).velocityY);
+    private class Worker implements Runnable {
+        public void run() {
+            for( int currentStep = 0; currentStep < timeSteps; currentStep++ ) {
+                while( currentParticle.get() < bodies.size() ) {
+                    try {
+                        int particleId = currentParticle.getAndIncrement();
 
-                    // Break the universe
-                    Utils.collide(p1, p2);
+                        calculateForces(particleId);
+                        barrier.await();
 
-                    // Print out particle information before throwing the particles off the screen
-                    System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
-                            i, bodies.get(i).posX, bodies.get(i).posY, bodies.get(i).velocityX,
-                            bodies.get(i).velocityY);
-                    System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
-                            j, bodies.get(j).posX, bodies.get(j).posY, bodies.get(j).velocityX,
-                            bodies.get(j).velocityY);
-                    System.out.println();
+                        moveParticles(bodies.get(particleId), DT);
+                        barrier.await();
 
+                        handleCollisions(particleId, DT, currentStep);
+                        if( barrier.await() == 0 ) {
+                            notifyListeners(currentStep);
+                        }
+                    } catch ( BrokenBarrierException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
     }
+
 
     public List<Particle> getBodies() {
         return bodies;
@@ -81,20 +151,5 @@ public class Universe {
 
     public void notifyListeners(int step) {
         registeredStepListeners.stream().forEach(l -> l.finishStep(step, bodies));
-    }
-
-    public void step(double seconds, int currentStep) {
-        moveParticles(seconds);
-        handleCollisions(seconds, currentStep);
-        notifyListeners(currentStep);
-    }
-
-    public void printBodies() {
-        for ( int i = 0; i < bodies.size(); i++ ) {
-            System.out.printf("Body %d: x = %f, y = %f, vx = %f units/sec, vy = %f units/sec\n",
-                    i, bodies.get(i).posX, bodies.get(i).posY, bodies.get(i).velocityX,
-                    bodies.get(i).velocityY);
-        }
-        System.out.println();
     }
 }

@@ -1,13 +1,20 @@
 public class Particle {
 
+    protected static int particleId = 0;
+
     protected double posX;
     protected double posY;
+
     protected double mass;
     protected double radius;
+
     protected double forceX = 0.0;
     protected double forceY = 0.0;
+
     protected double velocityX = 0.0;
     protected double velocityY = 0.0;
+
+    protected int id;
 
     public Particle(double x, double y, double velocityX, double velocityY, double radius, double mass) {
         this.posX = x;
@@ -16,6 +23,8 @@ public class Particle {
         this.velocityY = velocityY;
         this.radius = radius;
         this.mass = mass;
+        this.id = particleId;
+        particleId++;
     }
 
     /**
