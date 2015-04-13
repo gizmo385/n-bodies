@@ -22,7 +22,7 @@ public class Universe {
         this.registeredStepListeners = new ArrayList<>();
         this.bodies = Arrays.asList(bodies);
 
-        this.barrier = new CyclicBarrier(numWorkers, () -> barrier.reset());
+        this.barrier = new CyclicBarrier(numWorkers, () -> currentParticle.set(0));
 
         this.DT = DT;
         this.timeSteps = timeSteps;
