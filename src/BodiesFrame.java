@@ -17,7 +17,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     // Universe Constants
     protected static final double BODY_SIZE = 1;
-    protected static final double TIME_STEPS = 15000000;
+    protected static final double TIME_STEPS = 3500000;
     protected static final double MASS = 1;
     protected static final double DT = 1;
     private static final int PRINT_COUNT = 15;
@@ -76,15 +76,10 @@ public class BodiesFrame extends JFrame implements StepListener {
     }
 
     public static void main(String[] args) {
-        Particle p1 = new Particle(-5, 5, BODY_SIZE, MASS);
-        Particle p2 = new Particle(-5, -5, BODY_SIZE, MASS);
-        Particle p3 = new Particle(5, -5, BODY_SIZE, MASS);
-        Particle p4 = new Particle(5, 5, BODY_SIZE, MASS);
-        Particle p5 = new Particle(-3, 3, BODY_SIZE, MASS);
-        Particle p6 = new Particle(-3, -3, BODY_SIZE, MASS);
-        Particle p7 = new Particle(3, -3, BODY_SIZE, MASS);
-        Particle p8 = new Particle(3, 3, BODY_SIZE, MASS);
-        Universe universe = new Universe(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8));
+        Particle p1 = new Particle(2, -2, 0, 0, BODY_SIZE, MASS);
+        Particle p2 = new Particle(-2, 2, 0, 0, BODY_SIZE, MASS);
+//        Particle p3 = new Particle(2.25, -2.25, 0, 0, BODY_SIZE, MASS);
+        Universe universe = new Universe(Arrays.asList(p1, p2));
         BodiesFrame bf = new BodiesFrame(universe);
 
         bf.setVisible(true);
@@ -95,8 +90,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private final static int SIZE_UPSCALE_AMOUNT = 20;
-        private final static int POS_UPSCALE_AMOUNT = 7;
+        private final static int ZOOM_FACTOR = 60;
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -107,15 +101,13 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             if( particles != null ) {
                 for( Particle p : particles ) {
-                    int x = (int)Math.round(p.posX * POS_UPSCALE_AMOUNT) + (BodiesFrame.WIDTH / 2);
-                    int y = (int)Math.round(p.posY * POS_UPSCALE_AMOUNT) + (BodiesFrame.HEIGHT / 2);
-                    int size = (int)Math.round(p.size * SIZE_UPSCALE_AMOUNT);
+                    int x = (int)Math.round(p.posX * ZOOM_FACTOR) + (BodiesFrame.WIDTH / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
+                    int y = - (int)Math.round(p.posY * ZOOM_FACTOR) + (BodiesFrame.HEIGHT / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
+                    int size = (int)Math.round(p.radius * ZOOM_FACTOR * 2);
 
                     g2.fillOval(x, y, size, size);
                 }
             }
-
-            //this.repaint();
         }
 
         public void postParticles(List<Particle> particles) {

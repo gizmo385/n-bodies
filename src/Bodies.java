@@ -17,8 +17,8 @@ public class Bodies {
         final double BODY_SIZE  = args.length > 1 ? Double.parseDouble(args[1]) : 0.01;
         final double MASS       = args.length > 2 ? Double.parseDouble(args[2]) : 1;
 
-        Particle p1 = new Particle(-2, 0, BODY_SIZE, MASS);
-        Particle p2 = new Particle(2, 0, BODY_SIZE, MASS);
+        Particle p1 = new Particle(-2, 0, 0, 0, BODY_SIZE, MASS);
+        Particle p2 = new Particle(2, 0, 0, 0, BODY_SIZE, MASS);
         //Particle p3 = new Particle(-0.5, 0.5, BODY_SIZE, 1);
         //Particle p4 = new Particle(0.5, 0.5, BODY_SIZE, 1);
         //Particle p1 = new Particle(randomInRange(-10, 10), randomInRange(-10, 10), BODY_SIZE, 1);
@@ -33,8 +33,8 @@ public class Bodies {
         //particles.add(p4);
 
         for(Particle p : particles) {
-            System.out.printf("Created particle @ (%f, %f) with a size of %f and a mass of %f\n",
-                    p.posX, p.posY, p.size, p.mass);
+            System.out.printf("Created particle @ (%f, %f) with a radius of %f and a mass of %f\n",
+                    p.posX, p.posY, p.radius, p.mass);
         }
 
         Universe u = new Universe(particles);
