@@ -22,7 +22,7 @@ public class Universe {
         this.registeredStepListeners = new ArrayList<>();
         this.bodies = Arrays.asList(bodies);
 
-        this.barrier = new CyclicBarrier(numWorkers, () -> barrier.reset());
+        this.barrier = new CyclicBarrier(numWorkers);
 
         this.DT = DT;
         this.timeSteps = timeSteps;
@@ -103,9 +103,6 @@ public class Universe {
         }
     }
 
-    public void step(double seconds, int currentStep) {
-    }
-
     public void printBodies() {
         for ( int i = 0; i < bodies.size(); i++ ) {
             System.out.printf("Body %d: x = %f, y = %f, vx = %f units/sec, vy = %f units/sec\n",
@@ -136,10 +133,10 @@ public class Universe {
                         e.printStackTrace();
                     }
                 }
+                currentParticle.set(0);
             }
         }
     }
-
 
     public List<Particle> getBodies() {
         return bodies;

@@ -36,7 +36,7 @@ public class Bodies {
                 System.out.printf("Time = %f:\n", i * DT);
                 u.printBodies();
             }
-            u.step(DT, i);
+//            u.step(DT, i);
         }
         System.out.printf("Time (seconds) = %f:\n", TIME_STEPS);
         u.printBodies();

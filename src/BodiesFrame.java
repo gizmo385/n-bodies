@@ -19,7 +19,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final double BODY_SIZE = 1;
     protected static final double MASS = 1;
     //protected static final double DT = 0.1;
-    protected static final double DT = 5;
+    protected static final double DT = 0.1;
     protected static final int TIME_STEPS = 3500000;
     protected static final int NUM_WORKERS = 1;
     private static final int PRINT_COUNT = 15;
