@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 
 import java.awt.Color;
 import java.awt.GridLayout;
@@ -6,11 +7,6 @@ import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-
-import javax.swing.border.Border;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 
 import java.util.List;
 import java.util.Vector;
@@ -25,6 +21,9 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final int FRAME_WIDTH = 900, FRAME_HEIGHT = 500;
     protected static final int DRAWING_WIDTH = 500, DRAWING_HEIGHT = 500;
     protected static final int CONTROLS_WIDTH = 400, CONTROLS_HEIGHT = 500;
+
+    // Graphical values
+    private int zoomFactor = 10;
 
     // The particle being highlighted in the GUI
     protected int highlightedParticle = -1;
@@ -113,7 +112,6 @@ public class BodiesFrame extends JFrame implements StepListener {
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private int zoomFactor = 10;
 
         private final int WIDTH, HEIGHT;
 
@@ -123,7 +121,8 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             this.setSize(this.WIDTH, this.HEIGHT);
             this.addMouseWheelListener(wheelEvent -> {
-                zoomFactor = Math.max(wheelEvent.getUnitsToScroll() + zoomFactor, 0);
+                zoomFactor = Math.max(wheelEvent.getUnitsToScroll() + zoomFactor, 1);
+                controlPanel.setZoomSlider(zoomFactor);
             });
         }
 
@@ -169,6 +168,7 @@ public class BodiesFrame extends JFrame implements StepListener {
         private final int WIDTH, HEIGHT;
 
         private JComboBox<String> particleList;
+        private JSlider zoomSlider;
 
         public ControlsPanel(int width, int height) {
             this.WIDTH = width;
@@ -190,11 +190,19 @@ public class BodiesFrame extends JFrame implements StepListener {
                 int selectedId = Integer.parseInt(this.particleList.getSelectedItem().toString());
                 highlightedParticle = selectedId;
             });
+
+            zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 100, zoomFactor);
+            zoomSlider.setValue(zoomFactor);
+            zoomSlider.addChangeListener(event -> zoomFactor = zoomSlider.getValue());
+        }
+
+        public void setZoomSlider(int zoomAmount) {
+            zoomSlider.setValue(zoomAmount);
         }
 
         private void initPanel() {
             super.setSize(this.WIDTH, this.HEIGHT);
-            super.setLayout( new GridLayout(-1, 2) );
+            super.setLayout( new GridLayout(1, 2) );
             super.setVisible(true);
 
             Border lineBorder = BorderFactory.createLineBorder(Color.black, 5);
@@ -204,6 +212,11 @@ public class BodiesFrame extends JFrame implements StepListener {
             highlightPanel.add(new JLabel("Highlighted particle: "));
             highlightPanel.add(this.particleList);
             super.add(highlightPanel);
+
+            JPanel zoomPanel = new JPanel();
+            zoomPanel.add(new JLabel("Zoom factor: "));
+            zoomPanel.add(zoomSlider);
+            super.add(zoomPanel);
         }
 
         @Override
