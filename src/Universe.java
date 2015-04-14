@@ -14,7 +14,7 @@ public class Universe {
     private CyclicBarrier barrier;
 
     private final int timeSteps;
-    private final double DT;
+    private double DT;
 
     private List<StepListener> registeredStepListeners;
     private boolean[][] collisionMatrix;
@@ -34,6 +34,10 @@ public class Universe {
                 collisionMatrix[i][j] = false;
             }
         }
+    }
+
+    public void setDeltaTime(double DT) {
+        this.DT = DT;
     }
 
     public void start(int numWorkers) {

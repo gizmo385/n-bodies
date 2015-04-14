@@ -31,7 +31,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     // Universe Constants
     protected static final double BODY_SIZE = 1;
     protected static final double MASS = 1;
-    protected static final double DT = 1;
+    protected static double DT = 1;
     protected static final int TIME_STEPS = 3500000;
     protected static final int NUM_WORKERS = 1;
     private static final int PRINT_COUNT = 15;
@@ -192,6 +192,7 @@ public class BodiesFrame extends JFrame implements StepListener {
                 highlightedParticle = selectedId;
             });
 
+            // Slider for the zoom amount
             zoomSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, zoomFactor);
             zoomSlider.setValue(zoomFactor);
             zoomSlider.setMajorTickSpacing(20);
@@ -199,6 +200,19 @@ public class BodiesFrame extends JFrame implements StepListener {
             zoomSlider.setPaintTicks(true);
             zoomSlider.setPaintLabels(true);
             zoomSlider.addChangeListener(event -> zoomFactor = zoomSlider.getValue());
+
+            // Add a text field to change the delta time amount
+            deltaTimeAmount = new JTextField(15);
+            deltaTimeAmount.addActionListener(event -> {
+                try {
+                    double newDT = Double.parseDouble(deltaTimeAmount.getText());
+                    DT = newDT;
+                    universe.setDeltaTime(newDT);
+                } catch( NumberFormatException nfe ) {
+                    deltaTimeAmount.setText(String.valueOf(DT));
+                    JOptionPane.showMessageDialog(null, "Enter a valid delta time amount!", "Error!", JOptionPane.ERROR_MESSAGE);
+                }
+            });
         }
 
         public void setZoomSlider(int zoomAmount) {
@@ -221,6 +235,11 @@ public class BodiesFrame extends JFrame implements StepListener {
             zoomPanel.add(new JLabel("Zoom factor: "));
             zoomPanel.add(zoomSlider);
             super.add(zoomPanel);
+
+            JPanel dtPanel = new JPanel();
+            dtPanel.add(new JLabel("ΔT: "));
+            dtPanel.add(deltaTimeAmount);
+            super.add(dtPanel);
         }
 
         @Override
