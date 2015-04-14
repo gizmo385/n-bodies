@@ -35,7 +35,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final double MASS = 1;
     protected static double DT = 1;
     protected static final int TIME_STEPS = 3500000;
-    protected static final int NUM_WORKERS = 4;
+    protected static final int NUM_WORKERS = 8;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -79,7 +79,9 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     @Override
     public void finishStep(int step, List<Particle> particlesAfterStep) {
-        updatePanel(particlesAfterStep);
+        //if( step % 100 == 0 ) {
+            updatePanel(particlesAfterStep);
+        //}
     }
 
     public void updatePanel(List<Particle> particles) {
@@ -99,9 +101,45 @@ public class BodiesFrame extends JFrame implements StepListener {
         Particle p10 = new Particle(-7, 7, 0, 0, BODY_SIZE, MASS);
         Particle p11 = new Particle(-7, -7, 0, 0, BODY_SIZE, MASS);
         Particle p12 = new Particle(7, -7, 0, 0, BODY_SIZE, MASS);
+        Particle p13 = new Particle(9, 9, 0, 0, BODY_SIZE, MASS);
+        Particle p14 = new Particle(-9, 9, 0, 0, BODY_SIZE, MASS);
+        Particle p15 = new Particle(-9, -9, 0, 0, BODY_SIZE, MASS);
+        Particle p16 = new Particle(9, -9, 0, 0, BODY_SIZE, MASS);
+        Particle p17 = new Particle(11, 11, 0, 0, BODY_SIZE, MASS);
+        Particle p18 = new Particle(-11, 11, 0, 0, BODY_SIZE, MASS);
+        Particle p19 = new Particle(-11, -11, 0, 0, BODY_SIZE, MASS);
+        Particle p20 = new Particle(11, -11, 0, 0, BODY_SIZE, MASS);
+        Particle p21 = new Particle(13, 13, 0, 0, BODY_SIZE, MASS);
+        Particle p22 = new Particle(-13, 13, 0, 0, BODY_SIZE, MASS);
+        Particle p23 = new Particle(-13, -13, 0, 0, BODY_SIZE, MASS);
+        Particle p24 = new Particle(13, -13, 0, 0, BODY_SIZE, MASS);
+        Particle p25 = new Particle(15, 15, 0, 0, BODY_SIZE, MASS);
+        Particle p26 = new Particle(-15, 15, 0, 0, BODY_SIZE, MASS);
+        Particle p27 = new Particle(-15, -15, 0, 0, BODY_SIZE, MASS);
+        Particle p28 = new Particle(15, -15, 0, 0, BODY_SIZE, MASS);
+        Particle p29 = new Particle(17, 17, 0, 0, BODY_SIZE, MASS);
+        Particle p30 = new Particle(-17, 17, 0, 0, BODY_SIZE, MASS);
+        Particle p31 = new Particle(-17, -17, 0, 0, BODY_SIZE, MASS);
+        Particle p32 = new Particle(17, -17, 0, 0, BODY_SIZE, MASS);
 
         Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2, p3, p4, p5, p6, p7,
-                p8, p9, p10, p11, p12);
+                p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24,
+                p25, p26, p27, p28, p29, p30, p31, p32);
+
+        //Particle p1 = new Particle(-5, 5, 0, 0, BODY_SIZE, MASS);
+        //Particle p2 = new Particle(-5, -5, 0, 0, BODY_SIZE, MASS);
+        //Particle p3 = new Particle(5, -5, 0, 0, BODY_SIZE, MASS);
+        //Particle p4 = new Particle(5, 5, 0, 0, BODY_SIZE, MASS);
+        //Particle p5 = new Particle(-3, 3, 0, 0, BODY_SIZE, MASS);
+        //Particle p6 = new Particle(-3, -3, 0, 0, BODY_SIZE, MASS);
+        //Particle p7 = new Particle(3, -3, 0, 0, BODY_SIZE, MASS);
+        //Particle p8 = new Particle(3, 3, 0, 0, BODY_SIZE, MASS);
+        //Particle p9 = new Particle(7, 7, 0, 0, BODY_SIZE, MASS);
+        //Particle p10 = new Particle(-7, 7, 0, 0, BODY_SIZE, MASS);
+        //Particle p11 = new Particle(-7, -7, 0, 0, BODY_SIZE, MASS);
+        //Particle p12 = new Particle(7, -7, 0, 0, BODY_SIZE, MASS);
+
+        //Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12);
 
         BodiesFrame bf = new BodiesFrame(universe);
         bf.setVisible(true);
@@ -157,6 +195,9 @@ public class BodiesFrame extends JFrame implements StepListener {
                         g2.fillOval(x, y, size, size);
                         g2.setColor(Color.BLACK);
 
+                        g2.drawString( String.format("Position: (%f, %f)", p.posX, p.posY), 175, 50);
+                        g2.drawString( String.format("X-Velocity: %f", p.velocityX), 175, 70);
+                        g2.drawString( String.format("Y-Velocity: %f", p.velocityY), 175, 90);
                     } else {
                         g2.fillOval(x, y, size, size);
                     }
@@ -167,6 +208,10 @@ public class BodiesFrame extends JFrame implements StepListener {
                 pausedLabel.setVisible(true);
             } else {
                 pausedLabel.setVisible(false);
+            }
+
+            if( ! particleDrawingQueue.isEmpty() ) {
+                this.repaint();
             }
         }
 
