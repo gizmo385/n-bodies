@@ -2,6 +2,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.FlowLayout;
 import java.awt.Dimension;
@@ -114,6 +115,7 @@ public class BodiesFrame extends JFrame implements StepListener {
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
 
         private final int WIDTH, HEIGHT;
+        private JLabel pausedLabel;
 
         public DrawingPanel(int width, int height) {
             this.WIDTH = width;
@@ -124,6 +126,12 @@ public class BodiesFrame extends JFrame implements StepListener {
                 zoomFactor = Math.max(wheelEvent.getUnitsToScroll() + zoomFactor, 1);
                 controlPanel.setZoomSlider(zoomFactor);
             });
+
+            pausedLabel = new JLabel("The simulation is paused!");
+            pausedLabel.setFont(new Font("Arial", 1, 14));
+            pausedLabel.setForeground(Color.RED);
+            pausedLabel.setVisible(false);
+            add(pausedLabel);
         }
 
         @Override
@@ -149,6 +157,12 @@ public class BodiesFrame extends JFrame implements StepListener {
                         g2.fillOval(x, y, size, size);
                     }
                 }
+            }
+
+            if( universe.isPaused() ) {
+                pausedLabel.setVisible(true);
+            } else {
+                pausedLabel.setVisible(false);
             }
         }
 

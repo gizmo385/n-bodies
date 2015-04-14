@@ -77,6 +77,10 @@ public class Universe {
         running.set(false);
     }
 
+    public boolean isPaused() {
+        return ! running.get();
+    }
+
     public void unpause() {
         running.set(true);
     }
@@ -193,6 +197,12 @@ public class Universe {
                         }
                     } catch ( BrokenBarrierException | InterruptedException e ) {
                         e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        Thread.sleep(100);
+                    } catch( InterruptedException ie ) {
+                        ie.printStackTrace();
                     }
                 }
             }
