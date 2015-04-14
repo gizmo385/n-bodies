@@ -169,6 +169,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
         private JComboBox<String> particleList;
         private JSlider zoomSlider;
+        private JTextField deltaTimeAmount;
 
         public ControlsPanel(int width, int height) {
             this.WIDTH = width;
@@ -191,8 +192,12 @@ public class BodiesFrame extends JFrame implements StepListener {
                 highlightedParticle = selectedId;
             });
 
-            zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 100, zoomFactor);
+            zoomSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, zoomFactor);
             zoomSlider.setValue(zoomFactor);
+            zoomSlider.setMajorTickSpacing(20);
+            zoomSlider.setMinorTickSpacing(5);
+            zoomSlider.setPaintTicks(true);
+            zoomSlider.setPaintLabels(true);
             zoomSlider.addChangeListener(event -> zoomFactor = zoomSlider.getValue());
         }
 
@@ -202,7 +207,6 @@ public class BodiesFrame extends JFrame implements StepListener {
 
         private void initPanel() {
             super.setSize(this.WIDTH, this.HEIGHT);
-            super.setLayout( new GridLayout(1, 2) );
             super.setVisible(true);
 
             Border lineBorder = BorderFactory.createLineBorder(Color.black, 5);
@@ -223,6 +227,5 @@ public class BodiesFrame extends JFrame implements StepListener {
         public Dimension getPreferredSize() {
             return new Dimension(this.WIDTH, this.HEIGHT);
         }
-
     }
 }
