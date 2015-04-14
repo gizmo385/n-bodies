@@ -116,7 +116,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private final static int ZOOM_FACTOR = 10;
+        private int zoomFactor = 10;
 
         private final int WIDTH, HEIGHT;
 
@@ -125,6 +125,7 @@ public class BodiesFrame extends JFrame implements StepListener {
             this.HEIGHT = height;
 
             this.setSize(this.WIDTH, this.HEIGHT);
+            this.addMouseWheelListener(wheelEvent -> zoomFactor += wheelEvent.getUnitsToScroll());
         }
 
         @Override
@@ -136,9 +137,9 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             if( particles != null ) {
                 for( Particle p : particles ) {
-                    int x = (int)Math.round(p.posX * ZOOM_FACTOR) + (this.WIDTH / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
-                    int y = - (int)Math.round(p.posY * ZOOM_FACTOR) + (this.HEIGHT / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
-                    int size = (int)Math.round(p.radius * ZOOM_FACTOR * 2);
+                    int x = (int)Math.round(p.posX * zoomFactor) + (this.WIDTH / 2) - (int)Math.round(p.radius * (zoomFactor));
+                    int y = - (int)Math.round(p.posY * zoomFactor) + (this.HEIGHT / 2) - (int)Math.round(p.radius * (zoomFactor));
+                    int size = (int)Math.round(p.radius * zoomFactor * 2);
 
 
                     if( p.id == highlightedParticle ) {
