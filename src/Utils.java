@@ -29,9 +29,6 @@ public class Utils {
 
     public static double calculateDistance( Particle p1, Particle p2 ) {
         double d = Math.sqrt( Math.pow(p2.posY - p1.posY, 2) + Math.pow(p2.posX - p1.posX, 2) );
-        if ( d < p1.radius + p2.radius ) {
-            System.out.printf("Distance = %.10f\n", d);
-        }
         return Math.max(p1.radius + p2.radius, d);
     }
 
