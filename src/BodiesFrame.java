@@ -22,18 +22,17 @@ import java.util.stream.Collectors;
 public class BodiesFrame extends JFrame implements StepListener {
 
     // Graphics constants
-    protected static final int FRAME_WIDTH = 800, FRAME_HEIGHT = 500;
+    protected static final int FRAME_WIDTH = 900, FRAME_HEIGHT = 500;
     protected static final int DRAWING_WIDTH = 500, DRAWING_HEIGHT = 500;
     protected static final int CONTROLS_WIDTH = 400, CONTROLS_HEIGHT = 500;
 
     // The particle being highlighted in the GUI
-    //protected int highlightedParticle = 0;
     protected int highlightedParticle = -1;
 
     // Universe Constants
     protected static final double BODY_SIZE = 1;
     protected static final double MASS = 1;
-    protected static final double DT = .1;
+    protected static final double DT = 1;
     protected static final int TIME_STEPS = 3500000;
     protected static final int NUM_WORKERS = 1;
     private static final int PRINT_COUNT = 15;
@@ -77,9 +76,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     @Override
     public void finishStep(int step, List<Particle> particlesAfterStep) {
-        if( step % 1 == 0 ) {
-            updatePanel(particlesAfterStep);
-        }
+        updatePanel(particlesAfterStep);
     }
 
     public void updatePanel(List<Particle> particles) {
@@ -125,7 +122,9 @@ public class BodiesFrame extends JFrame implements StepListener {
             this.HEIGHT = height;
 
             this.setSize(this.WIDTH, this.HEIGHT);
-            this.addMouseWheelListener(wheelEvent -> zoomFactor += wheelEvent.getUnitsToScroll());
+            this.addMouseWheelListener(wheelEvent -> {
+                zoomFactor = Math.max(wheelEvent.getUnitsToScroll() + zoomFactor, 0);
+            });
         }
 
         @Override
@@ -150,7 +149,6 @@ public class BodiesFrame extends JFrame implements StepListener {
                     } else {
                         g2.fillOval(x, y, size, size);
                     }
-
                 }
             }
         }
@@ -202,10 +200,10 @@ public class BodiesFrame extends JFrame implements StepListener {
             Border lineBorder = BorderFactory.createLineBorder(Color.black, 5);
             super.setBorder( BorderFactory.createTitledBorder(lineBorder, "Controls"));
 
-            super.add(new JLabel("Highlighted particle: "));
-            super.add(this.particleList);
-
-            pack();
+            JPanel highlightPanel = new JPanel();
+            highlightPanel.add(new JLabel("Highlighted particle: "));
+            highlightPanel.add(this.particleList);
+            super.add(highlightPanel);
         }
 
         @Override
