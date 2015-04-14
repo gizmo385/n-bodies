@@ -10,6 +10,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -65,8 +66,10 @@ public class BodiesFrame extends JFrame implements StepListener {
         super.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         JPanel panel = new JPanel();
         panel.setLayout( new BoxLayout(panel, BoxLayout.X_AXIS) );
+
         super.setDefaultCloseOperation( EXIT_ON_CLOSE );
         super.setLocationRelativeTo( null );
+        super.setTitle("N-Bodies Simulation");
         super.setResizable( false );
 
         panel.add( this.drawingCanvas );
@@ -127,6 +130,7 @@ public class BodiesFrame extends JFrame implements StepListener {
                 controlPanel.setZoomSlider(zoomFactor);
             });
 
+            // Indicates that the simulation is paused
             pausedLabel = new JLabel("The simulation is paused!");
             pausedLabel.setFont(new Font("Arial", 1, 14));
             pausedLabel.setForeground(Color.RED);
@@ -218,6 +222,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             // Add a text field to change the delta time amount
             deltaTimeAmount = new JTextField(15);
+            deltaTimeAmount.setText( String.valueOf(DT) );
             deltaTimeAmount.addActionListener(event -> {
                 try {
                     double newDT = Double.parseDouble(deltaTimeAmount.getText());
@@ -231,16 +236,10 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             // Add buttons to pause and unpause the universe
             pauseButton = new JButton("Pause");
-            pauseButton.addActionListener(event -> {
-                universe.pause();
-                System.out.println("Pausing simulation!");
-            });
+            pauseButton.addActionListener(event -> universe.pause());
 
             unpauseButton = new JButton("Unpause");
-            unpauseButton.addActionListener(event -> {
-                universe.unpause();
-                System.out.println("Unpausing simulation!");
-            });
+            unpauseButton.addActionListener(event -> universe.unpause());
         }
 
         public void setZoomSlider(int zoomAmount) {

@@ -15,7 +15,8 @@ public class Universe {
 
     private final int timeSteps;
     private double DT;
-    private AtomicBoolean running = new AtomicBoolean(false);
+    private Object pauseObject = new Object();
+    private AtomicBoolean running = new AtomicBoolean(true);
 
     private List<StepListener> registeredStepListeners;
     private boolean[][] collisionMatrix;
@@ -57,12 +58,12 @@ public class Universe {
                 System.out.println("Adding particle " + i + " to worker " + j);
             }
         }
+
         for ( int i = 0; i < numWorkers; i++ ) {
             threads[i] = new Thread(workers[i]);
             threads[i].start();
         }
 
-        running.set(true);
 
         for ( int i = 0; i < numWorkers; i++ ) {
             try {
@@ -74,7 +75,10 @@ public class Universe {
     }
 
     public void pause() {
-        running.set(false);
+        if( !isPaused() ) {
+            running.set(false);
+            System.out.println("Pausing simulation!");
+        }
     }
 
     public boolean isPaused() {
@@ -82,7 +86,14 @@ public class Universe {
     }
 
     public void unpause() {
-        running.set(true);
+        if( isPaused() ) {
+            System.out.println("Unpausing simulation!");
+            running.set(true);
+
+            synchronized(pauseObject) {
+                pauseObject.notifyAll();
+            }
+        }
     }
 
     private void calculateForces(int particleId) {
@@ -192,19 +203,21 @@ public class Universe {
                             if ( currentStep % (timeSteps / NUM_PRINTS) == 0 ) {
                                 printBodies();
                             }
-
-                            currentStep++;
                         }
                     } catch ( BrokenBarrierException | InterruptedException e ) {
                         e.printStackTrace();
                     }
                 } else {
                     try {
-                        Thread.sleep(100);
+                        synchronized(pauseObject) {
+                            pauseObject.wait();
+                        }
                     } catch( InterruptedException ie ) {
                         ie.printStackTrace();
                     }
                 }
+
+                currentStep++;
             }
         }
     }
