@@ -3,17 +3,11 @@ import javax.swing.border.Border;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
-import java.util.List;
-import java.util.Vector;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BodiesFrame extends JFrame implements StepListener {
@@ -33,8 +27,8 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final double BODY_SIZE = 1;
     protected static final double MASS = 1;
     protected static double DT = 1;
-    protected static final int TIME_STEPS = 3500000;
-    protected static final int NUM_WORKERS = 4;
+    protected static final int TIME_STEPS = 35000000;
+    protected static final int NUM_WORKERS = 2;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -76,7 +70,9 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     @Override
     public void finishStep(int step, List<Particle> particlesAfterStep) {
-        updatePanel(particlesAfterStep);
+        if ( step % 100 == 0 ) {
+            updatePanel(particlesAfterStep);
+        }
     }
 
     public void updatePanel(List<Particle> particles) {
@@ -97,8 +93,8 @@ public class BodiesFrame extends JFrame implements StepListener {
         Particle p11 = new Particle(-7, -7, 0, 0, BODY_SIZE, MASS);
         Particle p12 = new Particle(7, -7, 0, 0, BODY_SIZE, MASS);
 
-        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2, p3, p4, p5, p6, p7,
-                p8, p9, p10, p11, p12);
+        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2);//, p3, p4, p5, p6, p7,
+//                p8, p9, p10, p11, p12);
 
         BodiesFrame bf = new BodiesFrame(universe);
         bf.setVisible(true);
@@ -280,4 +276,13 @@ public class BodiesFrame extends JFrame implements StepListener {
             return new Dimension(this.WIDTH, this.HEIGHT);
         }
     }
+
+    private double randomInRange(double min, double max) {
+        Random rand = new Random();
+
+        double randomValue = min + (max - min) * rand.nextDouble();
+
+        return randomValue;
+    }
+
 }

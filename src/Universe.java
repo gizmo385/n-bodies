@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Universe {
@@ -11,11 +12,13 @@ public class Universe {
     private static final int NUM_PRINTS = 15;
 
     private List<Particle> bodies;
-    private CyclicBarrier barrier;
+//    private CyclicBarrier barrier;
 
     private final int timeSteps;
     private double DT;
     private AtomicBoolean running = new AtomicBoolean(false);
+    private int numWorkers;
+    protected static Semaphore[][] threadBarriers;
 
     private List<StepListener> registeredStepListeners;
     private boolean[][] collisionMatrix;
@@ -23,8 +26,6 @@ public class Universe {
     public Universe(double DT, int timeSteps, int numWorkers, Particle... bodies) {
         this.registeredStepListeners = new ArrayList<>();
         this.bodies = Arrays.asList(bodies);
-
-        this.barrier = new CyclicBarrier(numWorkers);
 
         this.DT = DT;
         this.timeSteps = timeSteps;
@@ -42,10 +43,15 @@ public class Universe {
     }
 
     public void start(int numWorkers) {
+        this.numWorkers = numWorkers;
         Worker[] workers = new Worker[numWorkers];
         Thread[] threads = new Thread[numWorkers];
+        threadBarriers = new Semaphore[4][numWorkers];
         for ( int i = 0; i < numWorkers; i++ ) {
-            workers[i] = new Worker();
+            for ( int j = 0; j < 4; j++ ) {
+                threadBarriers[j][i] = new Semaphore(0);
+            }
+            workers[i] = new Worker(i);
         }
         for( int i = 0; i < bodies.size(); ) {
             for ( int j = 0; j < numWorkers && i < bodies.size(); j++, i++ ) {
@@ -156,6 +162,11 @@ public class Universe {
     private class Worker implements Runnable {
 
         ArrayList<Integer> myParticles = new ArrayList<>();
+        int threadNum;
+
+        public Worker(int threadNum) {
+            this.threadNum = threadNum;
+        }
 
         public void addParticle(int p) {
             myParticles.add(p);
@@ -168,36 +179,24 @@ public class Universe {
                     for ( int i : myParticles ) {
                         calculateForces(i);
                     }
-                    try {
-                        barrier.await();
-                    } catch ( BrokenBarrierException | InterruptedException e ) {
-                        e.printStackTrace();
-                    }
+                    barrier(this.threadNum);
                     for ( int i : myParticles ) {
                         moveParticles(bodies.get(i), DT);
-                    }
-                    try {
-                        barrier.await();
-                    } catch ( BrokenBarrierException | InterruptedException e ) {
-                        e.printStackTrace();
                     }
 
                     for ( int i : myParticles ) {
                         handleCollisions(i, DT, currentStep);
                     }
-                    try {
-                        if( barrier.await() == 0 ) {
-                            notifyListeners(currentStep);
+                    barrier(this.threadNum);
+                    if ( this.threadNum == 0 ) {
+                        notifyListeners(currentStep);
 
-                            if ( currentStep % (timeSteps / NUM_PRINTS) == 0 ) {
-                                printBodies();
-                            }
-
-                            currentStep++;
+                        if ( currentStep % (timeSteps / NUM_PRINTS) == 0 ) {
+                            printBodies();
                         }
-                    } catch ( BrokenBarrierException | InterruptedException e ) {
-                        e.printStackTrace();
+
                     }
+                    currentStep++;
                 } else {
                     try {
                         Thread.sleep(100);
@@ -220,4 +219,16 @@ public class Universe {
     public void notifyListeners(int step) {
         registeredStepListeners.stream().forEach(l -> l.finishStep(step, bodies));
     }
+
+    private void barrier(int threadNum) {
+        for ( int i = 1, j = 0; i < numWorkers; i = i * 2, j++ ) {
+            threadBarriers[j][threadNum].release();
+            try {
+                threadBarriers[j][(threadNum + i) % numWorkers].acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
