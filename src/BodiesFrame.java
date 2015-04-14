@@ -79,9 +79,9 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     @Override
     public void finishStep(int step, List<Particle> particlesAfterStep) {
-        //if( step % 100 == 0 ) {
+        if( step % 100 == 0 ) {
             updatePanel(particlesAfterStep);
-        //}
+        }
     }
 
     public void updatePanel(List<Particle> particles) {
@@ -208,10 +208,6 @@ public class BodiesFrame extends JFrame implements StepListener {
                 pausedLabel.setVisible(true);
             } else {
                 pausedLabel.setVisible(false);
-            }
-
-            if( ! particleDrawingQueue.isEmpty() ) {
-                this.repaint();
             }
         }
 
