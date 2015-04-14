@@ -1,26 +1,41 @@
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import javax.swing.border.Border;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+
 import java.util.List;
+import java.util.Vector;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class BodiesFrame extends JFrame implements StepListener {
 
     // Graphics constants
-    protected static final int WIDTH = 500, HEIGHT = 500;
+    protected static final int FRAME_WIDTH = 800, FRAME_HEIGHT = 500;
+    protected static final int DRAWING_WIDTH = 500, DRAWING_HEIGHT = 500;
+    protected static final int CONTROLS_WIDTH = 400, CONTROLS_HEIGHT = 500;
+
+    // The particle being highlighted in the GUI
+    //protected int highlightedParticle = 0;
+    protected int highlightedParticle = -1;
 
     // Universe Constants
     protected static final double BODY_SIZE = 1;
     protected static final double MASS = 1;
     protected static final double DT = .1;
     protected static final int TIME_STEPS = 3500000;
-    protected static final int NUM_WORKERS = 8;
+    protected static final int NUM_WORKERS = 1;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -28,6 +43,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
     // Graphical components
     protected DrawingPanel drawingCanvas;
+    protected ControlsPanel controlPanel;
 
     public BodiesFrame(Universe universe) {
         this.universe = universe;
@@ -37,26 +53,31 @@ public class BodiesFrame extends JFrame implements StepListener {
     }
 
     private void initComponents() {
-        this.drawingCanvas = new DrawingPanel();
-        this.drawingCanvas.setSize(WIDTH, HEIGHT);
+        this.drawingCanvas = new DrawingPanel(DRAWING_WIDTH, DRAWING_HEIGHT);
         this.drawingCanvas.setVisible(true);
+
+        this.controlPanel = new ControlsPanel(CONTROLS_WIDTH, CONTROLS_HEIGHT);
+        this.controlPanel.setVisible(true);
 
         updatePanel(this.universe.getBodies());
     }
 
     private void initFrame() {
-        super.setSize(WIDTH, HEIGHT);
-        super.setLayout( null );
+        super.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        JPanel panel = new JPanel();
+        panel.setLayout( new BoxLayout(panel, BoxLayout.X_AXIS) );
         super.setDefaultCloseOperation( EXIT_ON_CLOSE );
         super.setLocationRelativeTo( null );
         super.setResizable( false );
 
-        super.add( this.drawingCanvas );
+        panel.add( this.drawingCanvas );
+        panel.add( this.controlPanel );
+        super.add(panel);
     }
 
     @Override
     public void finishStep(int step, List<Particle> particlesAfterStep) {
-        if( step % 700 == 0 ) {
+        if( step % 1 == 0 ) {
             updatePanel(particlesAfterStep);
         }
     }
@@ -66,19 +87,22 @@ public class BodiesFrame extends JFrame implements StepListener {
     }
 
     public static void main(String[] args) {
-        Particle p1 = new Particle(-15, 15, .00001, -.00001, BODY_SIZE, MASS);
-        Particle p2 = new Particle(-2, 7, 0, 0, BODY_SIZE, MASS);
-        Particle p3 = new Particle(3, -9, 0, 0, BODY_SIZE, MASS);
-        Particle p4 = new Particle(-4, 9, 0, 0, BODY_SIZE, MASS);
-        Particle p5 = new Particle(5, -8, 0, 0, BODY_SIZE, MASS);
-        Particle p6 = new Particle(-6, 7, 0, 0, BODY_SIZE, MASS);
-        Particle p7 = new Particle(7, -6, 0, 0, BODY_SIZE, MASS);
-        Particle p8 = new Particle(-9, 5, 0, 0, BODY_SIZE, MASS);
-        Particle p9 = new Particle(9, -4, 0, 0, BODY_SIZE, MASS);
-        Particle p10 = new Particle(-8, 3, 0, 0, BODY_SIZE, MASS);
-        Particle p11 = new Particle(7, -2, 0, 0, BODY_SIZE, MASS);
-        Particle p12 = new Particle(15, -15, -.00001, .00001, BODY_SIZE, MASS);
-        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12);
+        Particle p1 = new Particle(-5, 5, 0, 0, BODY_SIZE, MASS);
+        Particle p2 = new Particle(-5, -5, 0, 0, BODY_SIZE, MASS);
+        Particle p3 = new Particle(5, -5, 0, 0, BODY_SIZE, MASS);
+        Particle p4 = new Particle(5, 5, 0, 0, BODY_SIZE, MASS);
+        Particle p5 = new Particle(-3, 3, 0, 0, BODY_SIZE, MASS);
+        Particle p6 = new Particle(-3, -3, 0, 0, BODY_SIZE, MASS);
+        Particle p7 = new Particle(3, -3, 0, 0, BODY_SIZE, MASS);
+        Particle p8 = new Particle(3, 3, 0, 0, BODY_SIZE, MASS);
+        Particle p9 = new Particle(7, 7, 0, 0, BODY_SIZE, MASS);
+        Particle p10 = new Particle(-7, 7, 0, 0, BODY_SIZE, MASS);
+        Particle p11 = new Particle(-7, -7, 0, 0, BODY_SIZE, MASS);
+        Particle p12 = new Particle(7, -7, 0, 0, BODY_SIZE, MASS);
+
+        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2, p3, p4, p5, p6, p7,
+                p8, p9, p10, p11, p12);
+
         BodiesFrame bf = new BodiesFrame(universe);
         bf.setVisible(true);
 
@@ -92,7 +116,16 @@ public class BodiesFrame extends JFrame implements StepListener {
     private class DrawingPanel extends JPanel {
 
         private Queue<List<Particle>> particleDrawingQueue = new LinkedList<>();
-        private final static int ZOOM_FACTOR = 2;
+        private final static int ZOOM_FACTOR = 10;
+
+        private final int WIDTH, HEIGHT;
+
+        public DrawingPanel(int width, int height) {
+            this.WIDTH = width;
+            this.HEIGHT = height;
+
+            this.setSize(this.WIDTH, this.HEIGHT);
+        }
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -103,18 +136,81 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             if( particles != null ) {
                 for( Particle p : particles ) {
-                    int x = (int)Math.round(p.posX * ZOOM_FACTOR) + (BodiesFrame.WIDTH / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
-                    int y = - (int)Math.round(p.posY * ZOOM_FACTOR) + (BodiesFrame.HEIGHT / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
+                    int x = (int)Math.round(p.posX * ZOOM_FACTOR) + (this.WIDTH / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
+                    int y = - (int)Math.round(p.posY * ZOOM_FACTOR) + (this.HEIGHT / 2) - (int)Math.round(p.radius * (ZOOM_FACTOR));
                     int size = (int)Math.round(p.radius * ZOOM_FACTOR * 2);
 
-                    g2.fillOval(x, y, size, size);
+
+                    if( p.id == highlightedParticle ) {
+                        g2.setColor(Color.YELLOW);
+                        g2.fillOval(x, y, size, size);
+                        g2.setColor(Color.BLACK);
+
+                    } else {
+                        g2.fillOval(x, y, size, size);
+                    }
+
                 }
             }
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(this.WIDTH, this.HEIGHT);
         }
 
         public void postParticles(List<Particle> particles) {
             this.particleDrawingQueue.add(particles);
             this.repaint();
         }
+    }
+
+    private class ControlsPanel extends JPanel {
+
+        private final int WIDTH, HEIGHT;
+
+        private JComboBox<String> particleList;
+
+        public ControlsPanel(int width, int height) {
+            this.WIDTH = width;
+            this.HEIGHT = height;
+
+            this.initComponents();
+            this.initPanel();
+        }
+
+        private void initComponents() {
+            // Get the particleIds
+            Vector<String> particleIds = universe.getBodies()
+                .stream()
+                .map(p -> String.valueOf(p.id))
+                .collect(Collectors.toCollection(Vector::new));
+
+            this.particleList = new JComboBox<String>(particleIds);
+            this.particleList.addActionListener(event -> {
+                int selectedId = Integer.parseInt(this.particleList.getSelectedItem().toString());
+                highlightedParticle = selectedId;
+            });
+        }
+
+        private void initPanel() {
+            super.setSize(this.WIDTH, this.HEIGHT);
+            super.setLayout( new GridLayout(-1, 2) );
+            super.setVisible(true);
+
+            Border lineBorder = BorderFactory.createLineBorder(Color.black, 5);
+            super.setBorder( BorderFactory.createTitledBorder(lineBorder, "Controls"));
+
+            super.add(new JLabel("Highlighted particle: "));
+            super.add(this.particleList);
+
+            pack();
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(this.WIDTH, this.HEIGHT);
+        }
+
     }
 }
