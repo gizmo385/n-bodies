@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Universe {
 
@@ -15,6 +15,7 @@ public class Universe {
 
     private final int timeSteps;
     private double DT;
+    private AtomicBoolean running = new AtomicBoolean(false);
 
     private List<StepListener> registeredStepListeners;
     private boolean[][] collisionMatrix;
@@ -60,6 +61,9 @@ public class Universe {
             threads[i] = new Thread(workers[i]);
             threads[i].start();
         }
+
+        running.set(true);
+
         for ( int i = 0; i < numWorkers; i++ ) {
             try {
                 threads[i].join();
@@ -67,6 +71,14 @@ public class Universe {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void pause() {
+        running.set(false);
+    }
+
+    public void unpause() {
+        running.set(true);
     }
 
     private void calculateForces(int particleId) {
@@ -146,36 +158,42 @@ public class Universe {
         }
 
         public void run() {
-            for( int currentStep = 0; currentStep < timeSteps; currentStep++ ) {
-                for ( int i : myParticles ) {
-                    calculateForces(i);
-                }
-                try {
-                    barrier.await();
-                } catch ( BrokenBarrierException | InterruptedException e ) {
-                    e.printStackTrace();
-                }
-                for ( int i : myParticles ) {
-                    moveParticles(bodies.get(i), DT);
-                }
-                try {
-                    barrier.await();
-                } catch ( BrokenBarrierException | InterruptedException e ) {
-                    e.printStackTrace();
-                }
-
-                for ( int i : myParticles ) {
-                    handleCollisions(i, DT, currentStep);
-                }
-                try {
-                    if( barrier.await() == 0 ) {
-                        notifyListeners(currentStep);
+            int currentStep = 0;
+            while( currentStep < timeSteps ) {
+                if( running.get() ) {
+                    for ( int i : myParticles ) {
+                        calculateForces(i);
                     }
-                } catch ( BrokenBarrierException | InterruptedException e ) {
-                    e.printStackTrace();
-                }
-                if ( currentStep % (timeSteps / NUM_PRINTS) == 0 ) {
-                    printBodies();
+                    try {
+                        barrier.await();
+                    } catch ( BrokenBarrierException | InterruptedException e ) {
+                        e.printStackTrace();
+                    }
+                    for ( int i : myParticles ) {
+                        moveParticles(bodies.get(i), DT);
+                    }
+                    try {
+                        barrier.await();
+                    } catch ( BrokenBarrierException | InterruptedException e ) {
+                        e.printStackTrace();
+                    }
+
+                    for ( int i : myParticles ) {
+                        handleCollisions(i, DT, currentStep);
+                    }
+                    try {
+                        if( barrier.await() == 0 ) {
+                            notifyListeners(currentStep);
+
+                            if ( currentStep % (timeSteps / NUM_PRINTS) == 0 ) {
+                                printBodies();
+                            }
+
+                            currentStep++;
+                        }
+                    } catch ( BrokenBarrierException | InterruptedException e ) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

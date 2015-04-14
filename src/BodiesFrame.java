@@ -33,7 +33,7 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final double MASS = 1;
     protected static double DT = 1;
     protected static final int TIME_STEPS = 3500000;
-    protected static final int NUM_WORKERS = 1;
+    protected static final int NUM_WORKERS = 4;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -170,6 +170,7 @@ public class BodiesFrame extends JFrame implements StepListener {
         private JComboBox<String> particleList;
         private JSlider zoomSlider;
         private JTextField deltaTimeAmount;
+        private JButton pauseButton, unpauseButton;
 
         public ControlsPanel(int width, int height) {
             this.WIDTH = width;
@@ -213,6 +214,19 @@ public class BodiesFrame extends JFrame implements StepListener {
                     JOptionPane.showMessageDialog(null, "Enter a valid delta time amount!", "Error!", JOptionPane.ERROR_MESSAGE);
                 }
             });
+
+            // Add buttons to pause and unpause the universe
+            pauseButton = new JButton("Pause");
+            pauseButton.addActionListener(event -> {
+                universe.pause();
+                System.out.println("Pausing simulation!");
+            });
+
+            unpauseButton = new JButton("Unpause");
+            unpauseButton.addActionListener(event -> {
+                universe.unpause();
+                System.out.println("Unpausing simulation!");
+            });
         }
 
         public void setZoomSlider(int zoomAmount) {
@@ -240,6 +254,11 @@ public class BodiesFrame extends JFrame implements StepListener {
             dtPanel.add(new JLabel("ΔT: "));
             dtPanel.add(deltaTimeAmount);
             super.add(dtPanel);
+
+            JPanel pausePanel = new JPanel();
+            pausePanel.add(pauseButton);
+            pausePanel.add(unpauseButton);
+            super.add(pausePanel);
         }
 
         @Override
