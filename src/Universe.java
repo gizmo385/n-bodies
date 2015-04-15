@@ -155,7 +155,7 @@ public class Universe {
                         bodies.get(j).velocityY);
 
                 // Break the universe
-                Utils.collide(p1, p2);
+                p1.collide(p2);
 
                 // Print out particle information before throwing the particles off the screen
                 System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",

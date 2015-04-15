@@ -51,4 +51,35 @@ public class Particle {
         return String.format("x = %f, y = %f, vx = %f units/sec, vy = %f units/sec", posX, posY,
                 velocityX, velocityY);
     }
+
+    public synchronized void collide(Particle p2) {
+        // Modify the x and y velocities for this. Equations taken from 2D collisions PDF
+        double thisNewDx = (p2.velocityX * Math.pow((p2.posX - this.posX), 2) + p2.velocityY * (p2.posX
+                - this.posX) * (p2.posY - this.posY) + this.velocityX * Math.pow(p2.posY - this.posY, 2)
+                - this.velocityY * (p2.posX - this.posX) * (p2.posY - this.posY)) / (Math.pow(p2.posX
+                - this.posX, 2) + Math.pow(p2.posY - this.posY, 2));
+
+        double thisNewDy = (p2.velocityX * (p2.posX - this.posX) * (p2.posY - this.posY) + p2.velocityY
+                * Math.pow(p2.posY - this.posY, 2) - this.velocityX * (p2.posY - this.posY) * (p2.posX
+                - this.posX) + this.velocityY * Math.pow(p2.posX - this.posX, 2)) / (Math.pow(p2.posX
+                - this.posX, 2) + Math.pow(p2.posY - this.posY, 2));
+
+        // Modify the x and y velocities for p2. Equations taken from 2D collisions PDF
+        double p2NewDx = (this.velocityX * Math.pow((p2.posX - this.posX), 2) + this.velocityY * (p2.posX
+                - this.posX) * (p2.posY - this.posY) + p2.velocityX * Math.pow(p2.posY - this.posY, 2)
+                - p2.velocityY * (p2.posX - this.posX) * (p2.posY - this.posY)) / (Math.pow(p2.posX
+                - this.posX, 2) + Math.pow(p2.posY - this.posY, 2));
+
+        double p2NewDy = (this.velocityX * (p2.posX - this.posX) * (p2.posY - this.posY) + this.velocityY
+                * Math.pow(p2.posY - this.posY, 2) - p2.velocityX * (p2.posY - this.posY) * (p2.posX
+                - this.posX) + p2.velocityY * Math.pow(p2.posX - this.posX, 2)) / (Math.pow(p2.posX
+                - this.posX, 2) + Math.pow(p2.posY - this.posY, 2));
+
+        // Actually modify the god damn velocities
+        p2.velocityY = p2NewDy;
+        p2.velocityX = p2NewDx;
+        this.velocityY = thisNewDy;
+        this.velocityX = thisNewDx;
+
+    }
 }
