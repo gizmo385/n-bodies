@@ -137,7 +137,7 @@ public class BodiesFrame extends JFrame implements StepListener {
         long startTime = System.currentTimeMillis();
         universe.start(NUM_WORKERS);
         long totalTime = System.currentTimeMillis() - startTime;
-        System.out.printf("computation time: %d seconds, %d milliseconds",
+        System.out.printf("computation time: %d seconds, %d milliseconds\n",
                 (totalTime / 1000), (totalTime % 1000));
         File f = new File("n-bodies.out");
         try (FileWriter fileWriter = new FileWriter(f)) {
