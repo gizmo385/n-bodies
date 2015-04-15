@@ -8,6 +8,16 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 
 import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Vector;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class BodiesFrame extends JFrame implements StepListener {
@@ -18,17 +28,18 @@ public class BodiesFrame extends JFrame implements StepListener {
     protected static final int CONTROLS_WIDTH = 400, CONTROLS_HEIGHT = 500;
 
     // Graphical values
-    private int zoomFactor = 10;
+    private int zoomFactor = 5;
 
     // The particle being highlighted in the GUI
     protected int highlightedParticle = -1;
 
     // Universe Constants
-    protected static final double BODY_SIZE = 1;
-    protected static final double MASS = 1;
+    protected static int TIME_STEPS = 3500000;
+    protected static int NUM_WORKERS = 8;
     protected static double DT = 1;
-    protected static final int TIME_STEPS = 35000000;
-    protected static final int NUM_WORKERS = 2;
+    protected static double BODY_SIZE = 1;
+    protected static boolean GUI = true;
+    protected static final double MASS = 1;
     private static final int PRINT_COUNT = 15;
 
     // Simulation
@@ -59,8 +70,10 @@ public class BodiesFrame extends JFrame implements StepListener {
         super.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         JPanel panel = new JPanel();
         panel.setLayout( new BoxLayout(panel, BoxLayout.X_AXIS) );
+
         super.setDefaultCloseOperation( EXIT_ON_CLOSE );
         super.setLocationRelativeTo( null );
+        super.setTitle("N-Bodies Simulation");
         super.setResizable( false );
 
         panel.add( this.drawingCanvas );
@@ -80,30 +93,64 @@ public class BodiesFrame extends JFrame implements StepListener {
     }
 
     public static void main(String[] args) {
-        Particle p1 = new Particle(-5, 5, 0, 0, BODY_SIZE, MASS);
-        Particle p2 = new Particle(-5, -5, 0, 0, BODY_SIZE, MASS);
-        Particle p3 = new Particle(5, -5, 0, 0, BODY_SIZE, MASS);
-        Particle p4 = new Particle(5, 5, 0, 0, BODY_SIZE, MASS);
-        Particle p5 = new Particle(-3, 3, 0, 0, BODY_SIZE, MASS);
-        Particle p6 = new Particle(-3, -3, 0, 0, BODY_SIZE, MASS);
-        Particle p7 = new Particle(3, -3, 0, 0, BODY_SIZE, MASS);
-        Particle p8 = new Particle(3, 3, 0, 0, BODY_SIZE, MASS);
-        Particle p9 = new Particle(7, 7, 0, 0, BODY_SIZE, MASS);
-        Particle p10 = new Particle(-7, 7, 0, 0, BODY_SIZE, MASS);
-        Particle p11 = new Particle(-7, -7, 0, 0, BODY_SIZE, MASS);
-        Particle p12 = new Particle(7, -7, 0, 0, BODY_SIZE, MASS);
+        if( args.length < 4 ) {
+            System.err.println("Usage: java BodiesFrame [numWorkers] [numBodies] [bodySize] [timeSteps]");
+            System.exit(1);
+        }
 
-        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, p1, p2);//, p3, p4, p5, p6, p7,
-//                p8, p9, p10, p11, p12);
+        NUM_WORKERS = Integer.parseInt(args[0]);
+        int numBodies = Integer.parseInt(args[1]);
+        BODY_SIZE = Double.parseDouble(args[2]);
+        TIME_STEPS = Integer.parseInt(args[3]);
 
-        BodiesFrame bf = new BodiesFrame(universe);
-        bf.setVisible(true);
+        if( args.length > 4 ) {
+            if( "--no-gui".equals(args[4]) ) {
+                GUI = false;
+            }
+        }
 
-        long startTime = System.nanoTime();
+        // Create particles
+        Particle[] particles = new Particle[numBodies];
+        Random r = new Random();
+        for( int i = 0; i < numBodies; i++ ) {
+            // Generate the starting locations
+            double startX, startY;
+            if( i % 2 == 0 ) {
+                startX = (Math.random() < .5 ? i : -i) * BODY_SIZE * 2;
+                startY = Math.random() * i * (Math.random() < .5 ? 1 : -1);
+            } else {
+                startY = (Math.random() < .5 ? i : -i) * BODY_SIZE * 2;
+                startX = Math.random() * i * (Math.random() < .5 ? 1 : -1);
+            }
+
+            Particle p = new Particle(startX, startY, 0, 0, BODY_SIZE, MASS);
+            particles[i] = p;
+        }
+
+        Universe universe = new Universe(DT, TIME_STEPS, NUM_WORKERS, particles);
+
+        if( GUI ) {
+            BodiesFrame bf = new BodiesFrame(universe);
+            bf.setVisible(true);
+        }
+
+        long startTime = System.currentTimeMillis();
         universe.start(NUM_WORKERS);
-        long totalTime = System.nanoTime() - startTime;
-        System.out.printf("Finished\nRunning for %d time steps with %d workers took %d.%d seconds",
-                TIME_STEPS, NUM_WORKERS, (long)(totalTime / 1e9), (long)(totalTime % 1e9));
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.out.printf("computation time: %d seconds, %d milliseconds",
+                (totalTime / 1000), (totalTime % 1000));
+        File f = new File("n-bodies.out");
+        try (FileWriter fileWriter = new FileWriter(f)) {
+            List<Particle> bodies = universe.getBodies();
+            for ( int i = 0; i < bodies.size(); i++ ) {
+                Particle curr = bodies.get(i);
+                fileWriter.write("Particle " + i + ": final position (" + curr.posX + ", " + curr.posY + "), final " +
+                        "velocity (" + curr.velocityX + ", " + curr.velocityY + ")\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
     }
 
     private class DrawingPanel extends JPanel {
@@ -123,6 +170,7 @@ public class BodiesFrame extends JFrame implements StepListener {
                 controlPanel.setZoomSlider(zoomFactor);
             });
 
+            // Indicates that the simulation is paused
             pausedLabel = new JLabel("The simulation is paused!");
             pausedLabel.setFont(new Font("Arial", 1, 14));
             pausedLabel.setForeground(Color.RED);
@@ -149,6 +197,9 @@ public class BodiesFrame extends JFrame implements StepListener {
                         g2.fillOval(x, y, size, size);
                         g2.setColor(Color.BLACK);
 
+                        g2.drawString( String.format("Position: (%f, %f)", p.posX, p.posY), 175, 50);
+                        g2.drawString( String.format("X-Velocity: %f", p.velocityX), 175, 70);
+                        g2.drawString( String.format("Y-Velocity: %f", p.velocityY), 175, 90);
                     } else {
                         g2.fillOval(x, y, size, size);
                     }
@@ -214,6 +265,7 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             // Add a text field to change the delta time amount
             deltaTimeAmount = new JTextField(15);
+            deltaTimeAmount.setText( String.valueOf(DT) );
             deltaTimeAmount.addActionListener(event -> {
                 try {
                     double newDT = Double.parseDouble(deltaTimeAmount.getText());
@@ -227,16 +279,10 @@ public class BodiesFrame extends JFrame implements StepListener {
 
             // Add buttons to pause and unpause the universe
             pauseButton = new JButton("Pause");
-            pauseButton.addActionListener(event -> {
-                universe.pause();
-                System.out.println("Pausing simulation!");
-            });
+            pauseButton.addActionListener(event -> universe.pause());
 
             unpauseButton = new JButton("Unpause");
-            unpauseButton.addActionListener(event -> {
-                universe.unpause();
-                System.out.println("Unpausing simulation!");
-            });
+            unpauseButton.addActionListener(event -> universe.unpause());
         }
 
         public void setZoomSlider(int zoomAmount) {

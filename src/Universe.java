@@ -16,7 +16,8 @@ public class Universe {
 
     private final int timeSteps;
     private double DT;
-    private AtomicBoolean running = new AtomicBoolean(false);
+    private Object pauseObject = new Object();
+    private AtomicBoolean running = new AtomicBoolean(true);
     private int numWorkers;
     protected static Semaphore[][] threadBarriers;
 
@@ -44,43 +45,59 @@ public class Universe {
 
     public void start(int numWorkers) {
         this.numWorkers = numWorkers;
-        Worker[] workers = new Worker[numWorkers];
-        Thread[] threads = new Thread[numWorkers];
-        threadBarriers = new Semaphore[4][numWorkers];
-        for ( int i = 0; i < numWorkers; i++ ) {
-            for ( int j = 0; j < 4; j++ ) {
-                threadBarriers[j][i] = new Semaphore(0);
+        if ( numWorkers == 1 ) {
+            for ( int i = 0; i < timeSteps; i++ ) {
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    calculateForces(j);
+                }
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    moveParticles(bodies.get(j), DT);
+                }
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    handleCollisions(j, DT, i);
+                }
+                notifyListeners(i);
             }
-            workers[i] = new Worker(i);
-        }
-        for( int i = 0; i < bodies.size(); ) {
-            for ( int j = 0; j < numWorkers && i < bodies.size(); j++, i++ ) {
-                workers[j].addParticle(i);
-                System.out.println("Adding particle " + i + " to worker " + j);
+        } else {
+            Worker[] workers = new Worker[numWorkers];
+            Thread[] threads = new Thread[numWorkers];
+            threadBarriers = new Semaphore[4][numWorkers];
+            for (int i = 0; i < numWorkers; i++) {
+                workers[i] = new Worker(i);
+                for ( int j = 0; j < 4; j++ ) {
+                    threadBarriers[j][i] = new Semaphore(0);
+                }
             }
-            for ( int j = numWorkers - 1; j >= 0 && i < bodies.size(); j--, i++ ) {
-                workers[j].addParticle(i);
-                System.out.println("Adding particle " + i + " to worker " + j);
+            for (int i = 0; i < bodies.size(); ) {
+                for (int j = 0; j < numWorkers && i < bodies.size(); j++, i++) {
+                    workers[j].addParticle(i);
+                }
+                for (int j = numWorkers - 1; j >= 0 && i < bodies.size(); j--, i++) {
+                    workers[j].addParticle(i);
+                }
             }
-        }
-        for ( int i = 0; i < numWorkers; i++ ) {
-            threads[i] = new Thread(workers[i]);
-            threads[i].start();
-        }
 
-        running.set(true);
+            for (int i = 0; i < numWorkers; i++) {
+                threads[i] = new Thread(workers[i]);
+                threads[i].start();
+            }
 
-        for ( int i = 0; i < numWorkers; i++ ) {
-            try {
-                threads[i].join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+            for (int i = 0; i < numWorkers; i++) {
+                try {
+                    threads[i].join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     public void pause() {
-        running.set(false);
+        if( !isPaused() ) {
+            running.set(false);
+            System.out.println("Pausing simulation!");
+        }
     }
 
     public boolean isPaused() {
@@ -88,7 +105,14 @@ public class Universe {
     }
 
     public void unpause() {
-        running.set(true);
+        if( isPaused() ) {
+            System.out.println("Unpausing simulation!");
+            running.set(true);
+
+            synchronized(pauseObject) {
+                pauseObject.notifyAll();
+            }
+        }
     }
 
     private void calculateForces(int particleId) {
@@ -135,7 +159,7 @@ public class Universe {
                         bodies.get(j).velocityY);
 
                 // Break the universe
-                Utils.collide(p1, p2);
+                p1.collide(p2);
 
                 // Print out particle information before throwing the particles off the screen
                 System.out.printf("[After] Body %d: x = %f, y = %f, vx = %.10f units/sec, vy = %.10f units/sec\n",
@@ -199,11 +223,15 @@ public class Universe {
                     currentStep++;
                 } else {
                     try {
-                        Thread.sleep(100);
+                        synchronized(pauseObject) {
+                            pauseObject.wait();
+                        }
                     } catch( InterruptedException ie ) {
                         ie.printStackTrace();
                     }
                 }
+
+                currentStep++;
             }
         }
     }
