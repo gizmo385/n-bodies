@@ -43,33 +43,48 @@ public class Universe {
     }
 
     public void start(int numWorkers) {
-        Worker[] workers = new Worker[numWorkers];
-        Thread[] threads = new Thread[numWorkers];
-        for ( int i = 0; i < numWorkers; i++ ) {
-            workers[i] = new Worker();
-        }
-        for( int i = 0; i < bodies.size(); ) {
-            for ( int j = 0; j < numWorkers && i < bodies.size(); j++, i++ ) {
-                workers[j].addParticle(i);
-                System.out.println("Adding particle " + i + " to worker " + j);
+        if ( numWorkers == 1 ) {
+            for ( int i = 0; i < timeSteps; i++ ) {
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    calculateForces(j);
+                }
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    moveParticles(bodies.get(j), DT);
+                }
+                for ( int j = 0; j < bodies.size(); j++ ) {
+                    handleCollisions(j, DT, i);
+                }
+                notifyListeners(i);
             }
-            for ( int j = numWorkers - 1; j >= 0 && i < bodies.size(); j--, i++ ) {
-                workers[j].addParticle(i);
-                System.out.println("Adding particle " + i + " to worker " + j);
+        } else {
+            Worker[] workers = new Worker[numWorkers];
+            Thread[] threads = new Thread[numWorkers];
+            for (int i = 0; i < numWorkers; i++) {
+                workers[i] = new Worker();
             }
-        }
+            for (int i = 0; i < bodies.size(); ) {
+                for (int j = 0; j < numWorkers && i < bodies.size(); j++, i++) {
+                    workers[j].addParticle(i);
+                    System.out.println("Adding particle " + i + " to worker " + j);
+                }
+                for (int j = numWorkers - 1; j >= 0 && i < bodies.size(); j--, i++) {
+                    workers[j].addParticle(i);
+                    System.out.println("Adding particle " + i + " to worker " + j);
+                }
+            }
 
-        for ( int i = 0; i < numWorkers; i++ ) {
-            threads[i] = new Thread(workers[i]);
-            threads[i].start();
-        }
+            for (int i = 0; i < numWorkers; i++) {
+                threads[i] = new Thread(workers[i]);
+                threads[i].start();
+            }
 
 
-        for ( int i = 0; i < numWorkers; i++ ) {
-            try {
-                threads[i].join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            for (int i = 0; i < numWorkers; i++) {
+                try {
+                    threads[i].join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
