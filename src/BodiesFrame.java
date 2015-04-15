@@ -9,6 +9,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -144,11 +147,23 @@ public class BodiesFrame extends JFrame implements StepListener {
         BodiesFrame bf = new BodiesFrame(universe);
         bf.setVisible(true);
 
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         universe.start(NUM_WORKERS);
-        long totalTime = System.nanoTime() - startTime;
-        System.out.printf("Finished\nRunning for %d time steps with %d workers took %d.%d seconds",
-                TIME_STEPS, NUM_WORKERS, (long)(totalTime / 1e9), (long)(totalTime % 1e9));
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.out.printf("computation time: %d seconds, %d milliseconds",
+                (totalTime / 1000), (totalTime % 1000));
+        File f = new File("n-bodies.out");
+        try (FileWriter fileWriter = new FileWriter(f)) {
+            List<Particle> bodies = universe.getBodies();
+            for ( int i = 0; i < bodies.size(); i++ ) {
+                Particle curr = bodies.get(i);
+                fileWriter.write("Particle " + i + ": final position (" + curr.posX + ", " + curr.posY + "), final " +
+                        "velocity (" + curr.velocityX + ", " + curr.velocityY + ")\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
     }
 
     private class DrawingPanel extends JPanel {
