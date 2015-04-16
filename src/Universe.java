@@ -207,6 +207,7 @@ public class Universe {
                     for ( int i : myParticles ) {
                         moveParticles(bodies.get(i), DT);
                     }
+                    barrier(this.threadNum);
 
                     for ( int i : myParticles ) {
                         handleCollisions(i, DT, currentStep);
@@ -220,7 +221,6 @@ public class Universe {
                         }
 
                     }
-                    currentStep++;
                 } else {
                     try {
                         synchronized(pauseObject) {
@@ -230,7 +230,6 @@ public class Universe {
                         ie.printStackTrace();
                     }
                 }
-
                 currentStep++;
             }
         }
